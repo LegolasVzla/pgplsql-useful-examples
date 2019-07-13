@@ -25,11 +25,17 @@ Login as a postgres user:
 
 	sudo -i -u postgres
 
-And execute the execute_all.sh file:
+Move to the path where your clone this repository and then go to tree-queries folder:
+
+	cd tree-queries/
+
+Finally, execute the execute_all.sh file:
 
 	./execute_all.sh
 
 * dev_postgres_database folder:
+
+Structure:
 
 Files are contained inside of the dev_postgres_database folder, with the below structure:
 
