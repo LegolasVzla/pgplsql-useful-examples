@@ -1,0 +1,1 @@
+INSERT INTO temporal_schema.users (id, password, last_login, is_superuser, first_name, last_name, email, is_staff, is_active, is_deleted, date_joined, updated_date) VALUES (1, 'pbkdf2_sha256$150000$fYkk5VV4riNy$g7owdQzVVRDhoZrMdtIFZ3X49WJVhCAsKcY03HrKyuM=', NULL, true, '', '', 'admin@admin.com', true, true, false, '2019-07-14 01:00:30.161747-04', '2019-07-14 01:00:30.453726-04');
