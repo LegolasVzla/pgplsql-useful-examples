@@ -13,7 +13,20 @@ AS $function$
     json_resulting = {}
     geolocator = Nominatim(user_agent="specify_your_app_name_here")
     location = geolocator.reverse(str(param_latitude)+", "+str(param_longitude))
-
+    if(location):
+        json_resulting['country_name']=location.raw['address']['country']
+        json_resulting['state_name']=location.raw['address']['state']
+        json_resulting['city_name']=location.raw['address']['county']
+        json_resulting['postal_code']=location.raw['address']['postcode']
+        json_resulting['road']=location.raw['address']['postcode']
+        json_resulting['full_address']=location.address
+    else:
+        json_resulting['country_name']="undefined"
+        json_resulting['state_name']="undefined"
+        json_resulting['city_name']="undefined"
+        json_resulting['postal_code']="undefined"
+        json_resulting['road']="undefined"
+        json_resulting['full_address']="undefined"
     return location
 
 $function$;
