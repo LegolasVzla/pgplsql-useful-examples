@@ -9,7 +9,7 @@ AS $function$
 # To test:
 # select public.udf_reverse_geocoding_geopy('10.4823307','-66.861713');
     import site
-    site.addsitedir('/home/manuel/Escritorio/Cosas_pendientes/Python/python_scripts/env-pandas/lib/python3.5/site-packages')
+    site.addsitedir('/your_virtualenv_path/lib/pythonX.Y/site-packages')
     from geopy.geocoders import Nominatim
     json_resulting = {}
     geolocator = Nominatim(user_agent="Ibeen")

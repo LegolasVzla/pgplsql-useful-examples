@@ -82,6 +82,23 @@ See more documentation in: [postgis](http://postgis.net/documentation/)
 
 Use:
 
+Assuming you are on Ubuntu, install plpython3 as follow:
+
+	sudo apt-get update
+
+	sudo apt-get install postgresql-contrib postgresql-plpython3
+
+Move to the path where your clone this repository and then go to plpython3u-examples folder:
+
+	cd plpython3u-examples/
+
+Create your virtualenv and install the requirements:
+
+	virtualenv env --python=python3
+	source env/bin/activate
+
+	pip install -r requirements.txt
+
 Give permissions to execute_all.sh file:
 
 	chmod +x execute_all.sh
@@ -89,10 +106,6 @@ Give permissions to execute_all.sh file:
 Login as a postgres user:
 
 	sudo -i -u postgres
-
-Move to the path where your clone this repository and then go to plpython3u-examples folder:
-
-	cd plpython3u-examples/
 
 Finally, execute the execute_all.sh file:
 
