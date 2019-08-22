@@ -1,7 +1,7 @@
 CREATE TABLE temporal_schema.images (
     id serial primary key,
     url character varying(200) NOT NULL,
-    principalimage boolean NOT NULL default False,
+    is_principal boolean NOT NULL default False,
     is_active boolean NOT NULL default True,
     is_deleted boolean NOT NULL default False,
     updated_date timestamp with time zone NOT NULL,
