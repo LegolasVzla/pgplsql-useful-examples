@@ -70,6 +70,15 @@ Files are contained inside of the temporal_schema folder, with the below structu
 a) schema -> functions: generating queries with tree json format:
 
 - udf_spots_nearby_current_user_position: get the first 5 nearest records disregard how far the are away from the current location.
+
+- udf_images_get.sql: get the images list related with a spot.
+
+- udf_categories_get.sql: get the categories list related with a spot.
+
+- udf_like_actions_get.sql: get the likes list related with a spot.
+
+- udf_users_tagged_get.sql: get the users tagged related with a spot.
+
 - udf_spots_nearby_within_X_kilometers_from_current_user_position: get the places within 5 km from the current position where you are.
 
 b) schema -> tables: examples tables. In "spots" table you can find PostGIS geometry columns (geom and position) used in the functions.
