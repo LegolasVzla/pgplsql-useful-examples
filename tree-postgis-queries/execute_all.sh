@@ -11,6 +11,8 @@ psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/tables/tags.sq
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/tables/spot_tags.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/tables/categories.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/tables/spot_categories.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/tables/type_user_actions.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/tables/user_actions.sql
 
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/data/users.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/data/spots.sql

@@ -5,4 +5,4 @@ CREATE TABLE temporal_schema.type_user_actions(
   updated_at timestamp without time zone NOT NULL,
   is_active boolean DEFAULT true,
   is_deleted boolean DEFAULT false
-)
+);

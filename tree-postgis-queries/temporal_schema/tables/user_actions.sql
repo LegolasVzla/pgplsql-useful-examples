@@ -8,3 +8,5 @@ CREATE TABLE temporal_schema.user_actions(
   is_active boolean DEFAULT true,
   is_deleted boolean DEFAULT false
 );
+ALTER TABLE ONLY temporal_schema.user_actions
+    ADD CONSTRAINT user_actions_type_user_actions_id_fk_spots_id FOREIGN KEY (type_user_actions_id) REFERENCES temporal_schema.type_user_actions(id) ON DELETE CASCADE;
