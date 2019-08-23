@@ -9,21 +9,10 @@ $BODY$
 DECLARE
 
   local_max_distance decimal = 5000.0;    -- Default max distance: 5 km or you could receive it as a parameter
-  aux_tree_returning varchar = '';
-  param_json_returning json := '[{
-      "spotId": null,
-      "spotName": null,
-      "lat": null,
-      "lng": null,
-      "country": null,
-      "city": null,
-      "is_active": null,
-      "categoriesList": [],
-      "likesList": [],
-      "ibeenList": [],
-      "imageList": [],
-      "usersTaggedList": []
-    }]';
+  aux_tree_returning varchar = '';  
+  status_value varchar = 'fail';
+  data_value json = '{ "User_id": "' || param_user_id || ' not found" }';
+  param_json_returning json = json_build_object('status',status_value,'data',data_value);
   --i RECORD;
     
   BEGIN        
@@ -47,6 +36,8 @@ DECLARE
     RETURN param_json_returning;
 
   END IF;
+
+  status_value = 'success';
 
   DROP TABLE IF EXISTS temporal_spots_table;
   -- Create a temporary table to store nearby places
@@ -150,15 +141,38 @@ DECLARE
           temporal_spots_table tst     
       )a;
 
-        param_json_returning = (replace(aux_tree_returning, '\"', ''))::json;
+      data_value = (replace(aux_tree_returning, '\"', ''))::json;
 
   ELSE
+
+    data_value = '[{
+        "totalSpots": null,
+        "spotId": null,
+        "spotName": null,
+        "remarks": null,
+        "review": null,
+        "reference_point": null,
+        "lat": null,
+        "long": null,
+        "country_name": null,
+        "state_name": null,
+        "city_name": null,
+        "description": null,
+        "is_privated": null,
+        "is_active": null,
+        "categoriesList": [],      
+        "likesList": [],
+        "ibeenList": [],
+        "imageList": [],
+        "usersTaggedList": []
+      }]';
 
     --RAISE NOTICE 'Were not found places near where you are';
 
   END IF;
 
-    RAISE NOTICE '%',param_json_returning;
+    param_json_returning = json_build_object('status',status_value,'data',data_value);
+    RAISE notice '%',param_json_returning; 
     RETURN param_json_returning;
 
   DROP TABLE IF EXISTS temporal_spots_table;

@@ -30,7 +30,7 @@ DECLARE
         AND
         not c.is_deleted
         AND
-        sc.spots_id = param_spot_id
+        sc.spot_id = param_spot_id
     ) THEN
 
       -- RAISE NOTICE 'Were found categories of the current spot';
@@ -53,7 +53,7 @@ DECLARE
             AND
             not c.is_deleted
             AND
-            sc.spots_id = param_spot_id
+            sc.spot_id = param_spot_id
       )a;
 
   ELSE
