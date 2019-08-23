@@ -62,7 +62,7 @@ DECLARE
         SELECT
           c.id as "commentId",
           la.id as "likeId",
-          la.users_id as "likedBy"--,
+          la.user_id as "likedBy"--,
           --(select temporal_schema.udf_comment_liked_get(c.id,param_spot_id) as "commentLikedList")
         FROM temporal_schema.user_actions ua
           INNER JOIN temporal_schema.spots s
