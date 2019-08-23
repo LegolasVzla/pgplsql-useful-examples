@@ -91,7 +91,7 @@ DECLARE
 
   ELSE
 
-    RAISE NOTICE 'Were not found User Tagged actions of the current spot with the current user';
+    --RAISE NOTICE 'Were not found User Tagged actions of the current spot with the current user';
 
   END IF;
 

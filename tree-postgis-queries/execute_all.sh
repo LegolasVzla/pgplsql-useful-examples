@@ -22,6 +22,10 @@ psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/data/likes_act
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/data/user_taggeds.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/data/spot_categories.sql
 
-#psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_current_user_position.sql
-#psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_images_get.sql
-#psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_within_X_kilometers_from_current_user_position.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_current_user_position.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_images_get.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_categories_get.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_like_actions_get.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_users_tagged_get.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_comments_get.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_within_X_kilometers_from_current_user_position.sql

@@ -18,7 +18,11 @@ DECLARE
       "country": null,
       "city": null,
       "is_active": null,
-      "imageList": []
+      "categoriesList": [],
+      "likesList": [],
+      "ibeenList": [],
+      "imageList": [],
+      "usersTaggedList": []
     }]';
   --i RECORD;
     
@@ -44,6 +48,7 @@ DECLARE
 
   END IF;
 
+  DROP TABLE IF EXISTS temporal_spots_table;
   -- Create a temporary table to store nearby places
   CREATE TEMPORARY TABLE IF NOT EXISTS temporal_spots_table (
         id integer,
@@ -136,7 +141,11 @@ DECLARE
           tst.city,
           tst.is_active,    
           tst.is_deleted,
-          (select temporal_schema.udf_images_get(tst.id) as "imageList")
+          (select temporal_schema.udf_categories_get(tst.id) as "categoriesList"),
+          (select temporal_schema.udf_like_actions_get(param_user_id,tst.id) as "likesList"),
+          (select temporal_schema.udf_images_get(tst.id) as "imageList"),
+          (select temporal_schema.udf_users_tagged_get(param_user_id,tst.id) as "usersTaggedList"),
+          (select temporal_schema.udf_comments_get(tst.id) as "commentsList")          
         FROM 
           temporal_spots_table tst     
       )a;
@@ -149,6 +158,7 @@ DECLARE
 
   END IF;
 
+    RAISE NOTICE '%',param_json_returning;
     RETURN param_json_returning;
 
   DROP TABLE IF EXISTS temporal_spots_table;

@@ -40,7 +40,7 @@ DECLARE
         SELECT
           si.id "imageId",
           si.url "imageURI",
-          si.principalimage,
+          si.is_principal,
           si.is_active
         FROM temporal_schema.images si
           INNER JOIN temporal_schema.spots s
@@ -58,7 +58,7 @@ DECLARE
         GROUP BY
           si.id, si.spot_id
         ORDER BY 
-          si.id, si.principalimage
+          si.id, si.is_principal
       )a;
 
   ELSE
