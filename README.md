@@ -87,7 +87,7 @@ c) schema -> data: mock data.
 
 * Database model schema:
 
-![](https://raw.githubusercontent.com/LegolasVzla/pgplsql-useful-examples/master/tree_postgis_queries/images/tree_postgis_queries_db_model.png "Database_model_schema")
+![](https://github.com/LegolasVzla/pgplsql-useful-examples/blob/master/tree-postgis-queries/images/tree_postgis_queries_db_model.png "Database_model_schema")
 
 * Response status codes:
 
