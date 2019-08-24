@@ -15,7 +15,7 @@ Some examples of a data migration between 2 PostgreSQL databases, related with a
 
 ## Tree queries
 
-Use:
+* Use:
 
 Give permissions to execute_all.sh file:
 
@@ -33,7 +33,7 @@ Finally, execute the execute_all.sh file:
 
 	./execute_all.sh
 
-Structure:
+* Structure:
 
 Files are contained inside of the temporal_schema folder, with the below structure:
 
@@ -45,7 +45,7 @@ c) schema -> data: mock data.
 
 ## Tree postgis queries
 
-Use:
+* Use:
 
 Give permissions to execute_all.sh file:
 
@@ -63,7 +63,7 @@ Finally, execute the execute_all.sh file:
 
 	./execute_all.sh
 
-Structure:
+* Structure:
 
 Files are contained inside of the temporal_schema folder, with the below structure:
 
@@ -84,6 +84,22 @@ a) schema -> functions: generating queries with tree json format:
 b) schema -> tables: examples tables. In "spots" table you can find PostGIS geometry columns (geom and position) used in the functions.
 
 c) schema -> data: mock data.
+
+* Database model schema:
+
+![](https://raw.githubusercontent.com/LegolasVzla/pgplsql-useful-examples/master/tree_postgis_queries/images/tree_postgis_queries_db_model.png "Database_model_schema")
+
+* Response status codes:
+
+udf_spots_nearby_within_X_kilometers_from_current_user_position return a response with the below standard:
+
+- Success case:
+
+	{ "status" : "success", "data" : [{ }] }
+
+- Fail case:
+
+	{ "status" : "fail", "data" : [{ } ]}
 
 See more documentation in: [postgis](http://postgis.net/documentation/)
 
