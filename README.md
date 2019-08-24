@@ -79,6 +79,8 @@ a) schema -> functions: generating queries with tree json format:
 
 - udf_users_tagged_get.sql: get the users tagged related with a spot.
 
+- udf_tags_get.sql: get the tags related with a spot.
+
 - udf_spots_nearby_within_X_kilometers_from_current_user_position: get the places within 5 km from the current position where you are.
 
 b) schema -> tables: examples tables. In "spots" table you can find PostGIS geometry columns (geom and position) used in the functions.

@@ -20,7 +20,7 @@ DECLARE
         c.id
       FROM temporal_schema.spots s
         INNER JOIN temporal_schema.user_actions ua
-          ON s.id = ua.spots_id
+          ON s.id = ua.spot_id
           INNER JOIN temporal_schema.type_user_actions tua
             ON ua.type_user_actions_id = tua.id
         INNER JOIN temporal_schema.comments c
@@ -63,7 +63,7 @@ DECLARE
           (select temporal_schema.udf_comment_liked_get(c.id,param_spot_id) as "commentLikedList")          
         FROM temporal_schema.spots s
           INNER JOIN temporal_schema.user_actions ua
-            ON s.id = ua.spots_id
+            ON s.id = ua.spot_id
             INNER JOIN temporal_schema.type_user_actions tua
               ON ua.type_user_actions_id = tua.id
           INNER JOIN temporal_schema.comments c

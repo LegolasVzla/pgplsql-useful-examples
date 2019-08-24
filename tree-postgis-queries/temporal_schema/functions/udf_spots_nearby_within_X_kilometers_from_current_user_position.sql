@@ -133,10 +133,11 @@ DECLARE
           tst.is_active,    
           tst.is_deleted,
           (select temporal_schema.udf_categories_get(tst.id) as "categoriesList"),
+          (select temporal_schema.udf_tags_get(tst.id) as "tagsList"),          
           (select temporal_schema.udf_like_actions_get(param_user_id,tst.id) as "likesList"),
           (select temporal_schema.udf_images_get(tst.id) as "imageList"),
           (select temporal_schema.udf_users_tagged_get(param_user_id,tst.id) as "usersTaggedList"),
-          (select temporal_schema.udf_comments_get(tst.id) as "commentsList")          
+          (select temporal_schema.udf_comments_get(tst.id) as "commentsList")
         FROM 
           temporal_spots_table tst     
       )a;
