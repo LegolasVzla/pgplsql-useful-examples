@@ -25,6 +25,7 @@ psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/data/spot_cate
 #psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_current_user_position.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_images_get.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_categories_get.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_tags_get.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_like_actions_get.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_users_tagged_get.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_comments_get.sql

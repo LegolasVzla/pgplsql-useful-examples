@@ -2,7 +2,7 @@
 CREATE OR REPLACE FUNCTION temporal_schema.udf_spots_nearby_within_X_kilometers_from_current_user_position(
     param_user_id integer,
     param_lat double precision,
-    param_long double precision)
+    param_lng double precision)
   RETURNS json AS
 $BODY$
 
@@ -43,6 +43,7 @@ DECLARE
   -- Create a temporary table to store nearby places
   CREATE TEMPORARY TABLE IF NOT EXISTS temporal_spots_table (
         id integer,
+        user_id integer,
         name character varying,
         lat double precision,
         lng double precision,
@@ -50,11 +51,13 @@ DECLARE
         country_code character varying,        
         city character varying,
         is_active boolean DEFAULT true,
-        is_deleted boolean DEFAULT false
+        is_deleted boolean DEFAULT false,
+        created_date timestamp without time zone        
   );
 
   INSERT INTO temporal_spots_table(
     id,
+    user_id,
     name,
     lat,
     lng,
@@ -62,13 +65,15 @@ DECLARE
     country_code,
     city,
     is_active,
-    is_deleted
+    is_deleted,
+    created_date
   )
 
   -- This is the main query:
   -- Get the places within 5 km from the current position where you are, using PostGIS
   SELECT
     s.id,
+    s.user_id,    
     s.name,
     s.lat,
     s.lng,
@@ -76,7 +81,8 @@ DECLARE
     s.country_code,
     s.city,
     s.is_active,
-    s.is_deleted
+    s.is_deleted,
+    s.created_date
   FROM
     temporal_schema.spots s
     INNER JOIN temporal_schema.users u
@@ -86,7 +92,7 @@ DECLARE
     --AND 
     --s.lat != param_lat
     --AND
-    --s.lng != param_long
+    --s.lng != param_lng
     AND
     s.is_active
     AND
@@ -96,7 +102,7 @@ DECLARE
     AND
     NOT u.is_deleted
     AND
-    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float);
+    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_lng,param_lat)::bytea)) <= (local_max_distance::float);
 
     -- Only for temporal_spots_table test purpose 
     /*
@@ -123,23 +129,44 @@ DECLARE
       SELECT JSON_AGG(a.*) INTO STRICT aux_tree_returning
       FROM (
         SELECT
-          tst.id "spotId",
-          tst.name "spotName",
-          tst.lat,
-          tst.lng,
-          tst.country,
-          tst.country_code,
-          tst.city,
-          tst.is_active,    
-          tst.is_deleted,
-          (select temporal_schema.udf_categories_get(tst.id) as "categoriesList"),
-          (select temporal_schema.udf_tags_get(tst.id) as "tagsList"),          
-          (select temporal_schema.udf_like_actions_get(param_user_id,tst.id) as "likesList"),
-          (select temporal_schema.udf_images_get(tst.id) as "imageList"),
-          (select temporal_schema.udf_users_tagged_get(param_user_id,tst.id) as "usersTaggedList"),
-          (select temporal_schema.udf_comments_get(tst.id) as "commentsList")
-        FROM 
-          temporal_spots_table tst     
+          (SELECT count(tst.id) FROM temporal_spots_table tst WHERE tst.user_id = param_user_id) as "totalSpots",
+          (
+            SELECT ARRAY_AGG(b.*) as "spotsData"
+            FROM (
+              SELECT
+                tst.id "spotId",
+                tst.name "spotName",
+                tst.lat,
+                tst.lng,
+                tst.country,
+                tst.country_code,
+                tst.city,
+                tst.is_active,
+                tst.created_date,
+                (select temporal_schema.udf_categories_get(tst.id) as "categoriesList"),
+                (select temporal_schema.udf_tags_get(tst.id) as "tagsList"),          
+                (select temporal_schema.udf_like_actions_get(param_user_id,tst.id) as "likesList"),
+                (select temporal_schema.udf_images_get(tst.id) as "imageList"),
+                (select temporal_schema.udf_users_tagged_get(param_user_id,tst.id) as "usersTaggedList"),
+                (select temporal_schema.udf_comments_get(tst.id) as "commentsList")
+              FROM 
+                  temporal_spots_table tst
+              GROUP BY
+                  tst.id,
+                  tst.user_id,
+                  tst.name,
+                  tst.lat,
+                  tst.lng,
+                  tst.country,
+                  tst.country_code,
+                  tst.city,
+                  tst.is_active,
+                  tst.created_date
+              ORDER BY 
+                  tst.id DESC
+              --LIMIT 10
+            )
+          b)
       )a;
 
       data_value = (replace(aux_tree_returning, '\"', ''))::json;
@@ -147,26 +174,28 @@ DECLARE
   ELSE
 
     data_value = '[{
-        "totalSpots": null,
-        "spotId": null,
-        "spotName": null,
-        "remarks": null,
-        "review": null,
-        "reference_point": null,
-        "lat": null,
-        "long": null,
-        "country_name": null,
-        "state_name": null,
-        "city_name": null,
-        "description": null,
-        "is_privated": null,
-        "is_active": null,
-        "categoriesList": [],      
-        "likesList": [],
-        "ibeenList": [],
-        "imageList": [],
-        "usersTaggedList": []
+    "totalSpots": 0,
+    "spotsData":
+      [{
+          "spotId": null,
+          "spotName": null,
+          "lat": null,
+          "lng": null,
+          "country": null,
+          "country_code": null,
+          "city": null,
+          "is_active": null,
+          "created_date": null,
+          "categoriesList": [],
+          "tagsList": [],
+          "likesList": [],
+          "ibeenList": [],
+          "imageList": [],
+          "usersTaggedList": [],
+          "commentsList": []
+        }]
       }]';
+
 
     --RAISE NOTICE 'Were not found places near where you are';
 
