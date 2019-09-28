@@ -88,7 +88,17 @@ DECLARE
     INNER JOIN temporal_schema.users u
       ON u.id = s.user_id
   WHERE
-    s.user_id = param_user_id
+    s.user_id IN (
+      -- Get spot of your friends
+    SELECT DISTINCT
+      friendable_id
+    FROM
+      friendships
+    WHERE 
+      (friendable_id = param_user_id OR
+      friend_id = param_user_id) AND
+      status = 2 -- Are friends
+    )
     --AND 
     --s.lat != param_lat
     --AND
