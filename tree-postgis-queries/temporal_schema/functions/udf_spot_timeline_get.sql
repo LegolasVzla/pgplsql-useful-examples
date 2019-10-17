@@ -1,5 +1,5 @@
--- DROP FUNCTION temporal_schema.udf_spots_timeline_get(integer);
-CREATE OR REPLACE FUNCTION temporal_schema.udf_spots_timeline_get(param_user_id integer)
+-- DROP FUNCTION temporal_schema.udf_spots_timeline_get(integer,integer);
+CREATE OR REPLACE FUNCTION temporal_schema.udf_spots_timeline_get(param_user_id integer,param_gimme_more_rows integer)
   RETURNS json AS
 $BODY$
 
@@ -15,7 +15,7 @@ DECLARE
 
   /*
   -- To Test:
-    select temporal_schema.udf_spots_timeline_get(1);
+    SELECT temporal_schema.udf_spots_timeline_get(1,0);
   */
 
   -- Prevention SQL injection
@@ -39,15 +39,15 @@ DECLARE
 
   -- Create a temporary table to store nearby places
   CREATE TEMPORARY TABLE IF NOT EXISTS temporal_spots_table (
-        id integer,
-        user_id integer,
-        name character varying,
-        lat double precision,
-        lng double precision,
-        country character varying,
-        city character varying,
-        is_active boolean DEFAULT true,
-        created_date timestamp without time zone
+    id integer,
+    user_id integer,
+    name character varying,
+    lat double precision,
+    lng double precision,
+    country character varying,
+    city character varying,
+    is_active boolean DEFAULT true,
+    created_date timestamp without time zone
   );
 
   INSERT INTO temporal_spots_table(
@@ -153,9 +153,7 @@ DECLARE
             SELECT 
               count(tst.id) 
             FROM 
-              temporal_spots_table tst 
-            WHERE 
-              tst.user_id = param_user_id) AS "totalSpots",
+              temporal_spots_table tst) AS "totalSpots",
           (
             SELECT ARRAY_AGG(b.*) as "spotsData"
             FROM (
@@ -181,8 +179,8 @@ DECLARE
                   tst.is_active,
                   concat((now()-created_date),' Ago') AS "created_date",
                   --concat((current_date-cast(created_date as date)),' ago') as "created_date",
-                  (select temporal_schema.udf_categories_get(tst.id) AS "categoriesList"),
-                  (select temporal_schema.udf_tags_get(tst.id) AS "tagsList"),
+                  (SELECT temporal_schema.udf_categories_get(tst.id) AS "categoriesList"),
+                  (SELECT temporal_schema.udf_tags_get(tst.id) AS "tagsList"),
                   (SELECT
                       CASE
                       WHEN (
@@ -223,7 +221,7 @@ DECLARE
                   tst.created_date
               ORDER BY 
                   tst.id DESC
-              --LIMIT 10
+              LIMIT 10 OFFSET param_gimme_more_rows -- Getting rows by range
             )
           b)
       )a;
@@ -270,5 +268,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION temporal_schema.udf_spots_timeline_get(integer)
+ALTER FUNCTION temporal_schema.udf_spots_timeline_get(integer,integer)
   OWNER TO postgres;
