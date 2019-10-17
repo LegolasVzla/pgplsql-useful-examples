@@ -1,8 +1,9 @@
--- DROP FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision);
+-- DROP FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer);
 CREATE OR REPLACE FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(
     param_user_id integer,
     param_lat double precision,
-    param_long double precision)
+    param_long double precision,
+    param_gimme_more_rows integer)
   RETURNS json AS
 $BODY$
 
@@ -19,7 +20,7 @@ DECLARE
 
   /*
   -- To Test:
-    SELECT udf_spots_nearby_within_X_kilometers_from_current_user_position(6,10.4823307,-66.861713);
+    SELECT udf_spots_nearby_within_X_kilometers_from_current_user_position(1,10.4823307,-66.861713,0);
   */
 
   -- Prevention SQL injection
@@ -27,7 +28,7 @@ DECLARE
     SELECT
       id
     FROM
-      users
+      temporal_schema.users
     WHERE
       id = param_user_id
     ) THEN
@@ -42,98 +43,79 @@ DECLARE
   DROP TABLE IF EXISTS temporal_spots_table;
   -- Create a temporary table to store nearby places
   CREATE TEMPORARY TABLE IF NOT EXISTS temporal_spots_table (
-        id integer,
-        users_id integer,
-        name character varying,
-        remarks character varying,
-        reference_point character varying,        
-        review character varying,
-        lat double precision,
-        long double precision,
-        country_name character varying,
-        state_name character varying,
-        city_name character varying,
-        description character varying,
-        full_address character varying,
-        is_privated boolean DEFAULT false,
-        is_active boolean DEFAULT true,
-        created_at timestamp without time zone        
+    id integer,
+    user_id integer,
+    name character varying,
+    lat double precision,
+    lng double precision,
+    country character varying,
+    city character varying,
+    is_active boolean DEFAULT true,
+    created_date timestamp without time zone
   );
 
   INSERT INTO temporal_spots_table(
     id,
-    users_id,
+    user_id,
     name,
-    remarks,
-    reference_point,
-    review,
     lat,
-    long,
-    country_name,
-    state_name,
-    city_name,
-    description,
-    full_address,
-    is_privated,
+    lng,
+    country,
+    city,
     is_active,
-    created_at    
+    created_date
   )
-  -- Get the places within 5 km's from the current position where you are, using PostGIS
+  -- Get all the spots from the current user
   SELECT
     s.id,
-    s.users_id,
+    s.user_id,
     s.name,
-    s.remarks,
-    s.reference_point,
-    s.review,
     s.lat,
-    s.long,
-    s.country_name,
-    s.state_name,
-    s.city_name,
-    ss.description,
-    s.full_address,
-    s.is_privated,
+    s.lng,
+    s.country,
+    s.city,
     s.is_active,
-    s.created_at
+    s.created_date
   FROM
-    spots s
-    INNER JOIN system_statuses ss
-      ON ss.id = s.status_id
-    INNER JOIN entity_statuses es
-      ON es.id = ss.entity_status_id
+    temporal_schema.spots s
+    --INNER JOIN temporal_schema.system_statuses ss
+    --  ON ss.id = s.status_id
+    --INNER JOIN temporal_schema.entity_statuses es
+    --  ON es.id = ss.entity_status_id
+    --INNER JOIN temporal_schema.users u
+    --  ON s.user_id = u.id
   WHERE
-    s.users_id IN (
-      -- Get spot of your friends
+    s.user_id IN (
+    -- Get spot of your friends
     SELECT DISTINCT
-      friendable_id
+      sender_user_id
     FROM
-      friendships
+      temporal_schema.friendships
     WHERE 
-      (friendable_id = param_user_id OR
-      friend_id = param_user_id) AND
+      (sender_user_id = param_user_id OR
+      receiver_user_id = param_user_id) AND
       status = 2 -- Are friends
-    ) OR s.users_id = param_user_id
+    ) OR s.user_id = param_user_id
     AND 
     s.lat != param_lat
     AND
-    s.long != param_long
-    AND
-    ss.id = 5 -- Activo
-    AND
-    es.id = 2 -- Spot
+    s.lng != param_long
+    --AND
+    --ss.id = 5 -- Activo
+    --AND
+    --es.id = 2 -- Spot
     AND
     s.is_active
-    AND
-    ss.is_active
-    AND
-    es.is_active
+    --AND
+    --ss.is_active
+    --AND
+    --es.is_active
     AND
     NOT s.is_deleted
-    AND
-    NOT ss.is_deleted
-    AND
-    NOT es.is_deleted
+    --AND
+    --NOT ss.is_deleted
+    --AND
+    --NOT es.is_deleted
     AND
     ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float);
 
@@ -162,58 +144,82 @@ DECLARE
       SELECT JSON_AGG(a.*) INTO STRICT aux_tree_returning
       FROM (
         SELECT
-          (select count(tst.id) from temporal_spots_table tst where tst.users_id = param_user_id) as "totalSpots",
+          (
+            SELECT 
+              count(tst.id) 
+            FROM 
+              temporal_spots_table tst) AS "totalSpots",
           (
             SELECT ARRAY_AGG(b.*) as "spotsData"
             FROM (
               SELECT
                   tst.id "spotId",
+                  (SELECT ARRAY_AGG(c.*) 
+                    FROM (
+                      SELECT DISTINCT
+                        id,
+                        CONCAT(first_name,' ' || last_name) as owner--,
+                        --avatar as "avatar_url"
+                      FROM
+                        temporal_schema.users
+                      WHERE
+                        id = tst.user_id
+                    )c
+                  ) "ownerDetails",
                   tst.name "spotName",
-                  tst.remarks,
-                  tst.reference_point,
                   tst.lat,
-                  tst.long,
-                  tst.country_name,
-                  tst.state_name,
-                  tst.city_name,
-                  tst.description "status",
-                  tst.full_address,
-                  tst.is_privated,
+                  tst.lng,
+                  tst.country,
+                  tst.city,
                   tst.is_active,
-                  concat((now()-created_at),' Ago') as "created_at",
-                  --concat((current_date-cast(created_at as date)),' ago') as "created_at",
-                  (select public.udf_categories_get(tst.id) as "categoriesList"),
-                  (select public.udf_tags_get(tst.id) as "tagsList"),
-                  (select public.udf_like_actions_get(param_user_id,tst.id,0) as "likesList"),
-                  (select public.udf_images_get(tst.id) as "imageList"),
-                  (select public.udf_users_tagged_get(param_user_id,tst.id) as "usersTaggedList"),
-                  (select public.udf_comments_get(tst.id) as "commentsList")
+                  concat((now()-created_date),' Ago') AS "created_date",
+                  --concat((current_date-cast(created_date as date)),' ago') as "created_date",
+                  (SELECT temporal_schema.udf_categories_get(tst.id) AS "categoriesList"),
+                  (SELECT temporal_schema.udf_tags_get(tst.id) AS "tagsList"),
+                  (SELECT
+                      CASE
+                      WHEN (
+                        count(la.id) > 0 
+                      ) THEN count(la.id)
+                      ELSE 0
+                      END
+                    FROM
+                      temporal_schema.user_actions ua
+                      INNER JOIN temporal_schema.like_actions la
+                        ON ua.id = la.user_actions_id
+                    WHERE
+                      ua.spot_id = tst.id
+                      AND
+                      ua.is_active
+                      AND NOT
+                      ua.is_deleted
+                      AND
+                      la.is_active
+                      AND NOT
+                      la.is_deleted
+                  ) "totallikes",
+                  (SELECT temporal_schema.udf_like_actions_get(param_user_id,tst.id) AS "likesList"),
+                  (SELECT temporal_schema.udf_images_get(tst.id) AS "imageList"),
+                  (SELECT temporal_schema.udf_users_tagged_get(param_user_id,tst.id) AS "usersTaggedList"),
+                  (SELECT temporal_schema.udf_comments_get(tst.id) AS "commentsList")
               FROM 
                   temporal_spots_table tst
               GROUP BY
                   tst.id,
-                  tst.users_id,
+                  "ownerDetails",
                   tst.name,
-                  tst.remarks,
-                  tst.reference_point,
-                  tst.review,
                   tst.lat,
-                  tst.long,
-                  tst.country_name,
-                  tst.state_name,
-                  tst.city_name,
-                  tst.description,
-                  tst.full_address,
-                  tst.is_privated,
+                  tst.lng,
+                  tst.country,
+                  tst.city,
                   tst.is_active,
-                  tst.created_at
+                  tst.created_date
               ORDER BY 
-                  tst.id desc
-              --LIMIT 10
+                  tst.id DESC
+              LIMIT 10 OFFSET param_gimme_more_rows -- Getting rows by range
             )
           b)
       )a;
-
       data_value = (replace(aux_tree_returning, '\"', ''))::json;
 
   ELSE
@@ -222,22 +228,17 @@ DECLARE
     "totalSpots": 0,
     "spotsData":
       [{
-          "totalSpots": null,
           "spotId": null,
+          "ownerDetails": [],
           "spotName": null,
-          "remarks": null,
-          "review": null,
-          "reference_point": null,
           "lat": null,
-          "long": null,
-          "country_name": null,
-          "state_name": null,
-          "city_name": null,
-          "description": null,
-          "is_privated": null,
+          "lng": null,
+          "country": null,
+          "city": null,
           "is_active": null,
           "categoriesList": [],
           "tagsList": [],
+          "totallikes": null,
           "likesList": [],
           "imageList": [],
           "usersTaggedList": [],
@@ -261,5 +262,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision)
+ALTER FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer)
   OWNER TO postgres;
