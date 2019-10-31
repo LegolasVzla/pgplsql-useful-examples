@@ -1,8 +1,9 @@
--- DROP FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer);
+-- DROP FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer,integer);
 CREATE OR REPLACE FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(
     param_user_id integer,
     param_lat double precision,
     param_long double precision,
+    param_rows_maximum_request integer,
     param_gimme_more_rows integer)
   RETURNS json AS
 $BODY$
@@ -20,7 +21,7 @@ DECLARE
 
   /*
   -- To Test:
-    SELECT udf_spots_nearby_within_X_kilometers_from_current_user_position(1,10.4823307,-66.861713,0);
+    SELECT udf_spots_nearby_within_X_kilometers_from_current_user_position(1,10.4823307,-66.861713,10,0);
   */
 
   -- Prevention SQL injection
@@ -216,7 +217,7 @@ DECLARE
                   tst.created_date
               ORDER BY 
                   tst.id DESC
-              LIMIT 10 OFFSET param_gimme_more_rows -- Getting rows by range
+              LIMIT param_rows_maximum_request OFFSET param_gimme_more_rows -- Getting rows by range
             )
           b)
       )a;
@@ -262,5 +263,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer)
+ALTER FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer,integer)
   OWNER TO postgres;

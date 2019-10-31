@@ -1,5 +1,8 @@
--- DROP FUNCTION public.udf_spots_profile_get(integer,integer);
-CREATE OR REPLACE FUNCTION public.udf_spots_profile_get(param_user_id integer,param_gimme_more_rows integer)
+-- DROP FUNCTION public.udf_spots_profile_get(integer,integer,integer);
+CREATE OR REPLACE FUNCTION public.udf_spots_profile_get(
+  param_user_id integer,
+  param_rows_maximum_request integer,  
+  param_gimme_more_rows integer)
   RETURNS json AS
 $BODY$
 
@@ -15,7 +18,7 @@ DECLARE
 
   /*
   -- To Test:
-    SELECT public.udf_spots_profile_get(1,0);
+    SELECT public.udf_spots_profile_get(1,10,0);
   */
 
   -- Prevention SQL injection
@@ -209,7 +212,7 @@ DECLARE
                   tst.created_date
               ORDER BY 
                   tst.id DESC
-              LIMIT 10 OFFSET param_gimme_more_rows -- Getting rows by range
+              LIMIT param_rows_maximum_request OFFSET param_gimme_more_rows -- Getting rows by range
             )
           b)
       )a;
@@ -256,5 +259,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.udf_spots_profile_get(integer,integer)
+ALTER FUNCTION public.udf_spots_profile_get(integer,integer,integer)
   OWNER TO postgres;
