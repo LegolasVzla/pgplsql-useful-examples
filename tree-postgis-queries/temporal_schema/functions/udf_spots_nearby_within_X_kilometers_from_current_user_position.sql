@@ -118,7 +118,12 @@ DECLARE
     --AND
     --NOT es.is_deleted
     AND
-    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float);
+    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)
+    ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromWKB(ST_MakePoint(param_long,param_lat)::bytea));
+--	  ST_DistanceSphere("s"."position", ST_GeomFromWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)	
+--	  ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea));
+--    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)	
+--    ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea));
 
     -- Only for temporal_spots_table test purpose 
     /*
