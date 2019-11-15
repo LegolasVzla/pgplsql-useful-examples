@@ -31,3 +31,4 @@ psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_users_tagged_get.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_comments_get.sql
 psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_within_X_kilometers_from_current_user_position.sql
+psql -U postgres -d dev_postgres_database -a -f ./temporal_schema/functions/udf_spots_nearby_by_filter_place_name.sql
