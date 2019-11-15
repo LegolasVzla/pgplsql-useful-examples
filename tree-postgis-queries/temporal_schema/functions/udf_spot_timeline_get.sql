@@ -174,6 +174,18 @@ DECLARE
                         id = tst.user_id
                     )c
                   ) "ownerDetails",
+                  (SELECT
+                      CASE
+                      WHEN (
+                        user_id = param_user_id  
+                      ) THEN True
+                      ELSE False
+                      END
+                    FROM
+                      temporal_schema.spots
+                  WHERE
+                    id = tst.id 
+                  ) as "is_mine",
                   tst.name "spotName",
                   tst.lat,
                   tst.lng,
@@ -239,6 +251,7 @@ DECLARE
       [{
           "spotId": null,
           "ownerDetails": [],
+          "is_mine": null,
           "spotName": null,
           "lat": null,
           "lng": null,
