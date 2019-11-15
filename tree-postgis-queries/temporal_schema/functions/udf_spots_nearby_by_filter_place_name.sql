@@ -1,8 +1,9 @@
--- DROP FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer,integer);
-CREATE OR REPLACE FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(
+-- DROP FUNCTION public.udf_spots_nearby_by_filter_place_name(integer, double precision, double precision,varchar,integer,integer);
+CREATE OR REPLACE FUNCTION public.udf_spots_nearby_by_filter_place_name(
     param_user_id integer,
     param_lat double precision,
     param_long double precision,
+    param_place_name varchar,
     param_rows_maximum_request integer,
     param_gimme_more_rows integer)
   RETURNS json AS
@@ -21,7 +22,7 @@ DECLARE
 
   /*
   -- To Test:
-    SELECT udf_spots_nearby_within_X_kilometers_from_current_user_position(1,10.4823307,-66.861713,10,0);
+    SELECT udf_spots_nearby_by_filter_place_name(1,10.4823307,-66.861713,'Cayo Sal',10,0);
   */
 
   -- Prevention SQL injection
@@ -101,6 +102,8 @@ DECLARE
     s.lat != param_lat
     AND
     s.lng != param_long
+    AND
+    s.name ILIKE concat(param_place_name, '%')
     --AND
     --ss.id = 5 -- Activo
     --AND
@@ -120,9 +123,9 @@ DECLARE
     AND
     ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)
     ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromWKB(ST_MakePoint(param_long,param_lat)::bytea));
---	  ST_DistanceSphere("s"."position", ST_GeomFromWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)	
---	  ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea));
---    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)	
+--    ST_DistanceSphere("s"."position", ST_GeomFromWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float) 
+--    ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea));
+--    ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)  
 --    ORDER BY ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea));
 
     -- Only for temporal_spots_table test purpose 
@@ -269,5 +272,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.udf_spots_nearby_within_X_kilometers_from_current_user_position(integer, double precision, double precision,integer,integer)
+ALTER FUNCTION public.udf_spots_nearby_by_filter_place_name(integer, double precision, double precision,varchar,integer,integer)
   OWNER TO postgres;
