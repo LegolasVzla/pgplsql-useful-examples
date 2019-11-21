@@ -213,18 +213,6 @@ DECLARE
                   (SELECT temporal_schema.udf_comments_get(tst.id) AS "commentsList")
               FROM 
                   temporal_spots_table tst
-              GROUP BY
-                  tst.id,
-                  "ownerDetails",
-                  tst.name,
-                  tst.lat,
-                  tst.lng,
-                  tst.country,
-                  tst.city,
-                  tst.is_active,
-                  tst.created_date
-              ORDER BY 
-                  tst.id DESC
               LIMIT param_rows_maximum_request OFFSET param_gimme_more_rows -- Getting rows by range
             )
           b)
