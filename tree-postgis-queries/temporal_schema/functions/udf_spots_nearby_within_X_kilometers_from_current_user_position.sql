@@ -88,25 +88,25 @@ DECLARE
   WHERE
     s.user_id IN (
       -- Get spots that belongs to the current user or their friends
-		SELECT DISTINCT
-		  f.friendable_id
-		FROM
-		  friendships f
-		  INNER JOIN users u
-			ON (f.friendable_id = u.id OR f.friend_id = u.id) 
-		  INNER JOIN spots s
-			ON u.id = s.users_id
-		WHERE 
-		  (f.friendable_id = param_user_id OR f.friend_id = param_user_id)
-		   AND f.status = 2 -- Are friends
-		   AND u.id = param_user_id 
-		   AND u.is_active
-		   AND NOT u.is_deleted
-		   AND s.is_active
-		   AND NOT s.is_deleted
-		   AND
-		   ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)
-	) --OR s.users_id = param_user_id
+    SELECT DISTINCT
+      f.sender_user_id
+    FROM
+      temporal_schema.friendships f
+      INNER JOIN temporal_schema.users u
+      ON (f.sender_user_id = u.id OR f.receiver_user_id = u.id) 
+      INNER JOIN temporal_schema.spots s
+      ON u.id = s.user_id
+    WHERE 
+      (f.sender_user_id = param_user_id OR f.receiver_user_id  = param_user_id)
+       AND f.status = 2 -- Are friends
+       AND u.id = param_user_id 
+       AND u.is_active
+       AND NOT u.is_deleted
+       AND s.is_active
+       AND NOT s.is_deleted
+       AND
+       ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)
+  ) OR s.user_id = param_user_id
     /* If you want to exclude the current place where you are
 	AND 
     s.lat != 10.469245
