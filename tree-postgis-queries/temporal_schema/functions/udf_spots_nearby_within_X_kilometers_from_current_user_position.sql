@@ -220,26 +220,7 @@ DECLARE
 
     data_value = '[{
     "totalSpots": 0,
-    "spotsData":
-      [{
-          "spotId": null,
-          "ownerDetails": [],
-          "spotName": null,
-          "lat": null,
-          "lng": null,
-          "country": null,
-          "city": null,
-          "is_active": null,
-          "created_date": null,
-          "categoriesList": [],
-          "tagsList": [],
-          "totallikes": null,
-          "likesList": [],
-          "imageList": [],
-          "usersTaggedList": [],
-          "commentsList": []
-        }]
-      }]';
+    "spotsData": []}]';
 
     --RAISE NOTICE 'Were not found places near where you are';
 

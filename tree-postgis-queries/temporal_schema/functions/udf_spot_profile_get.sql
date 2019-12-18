@@ -1,8 +1,10 @@
--- DROP FUNCTION public.udf_spots_profile_get(integer,integer,integer);
+-- DROP FUNCTION public.udf_spots_profile_get(integer,integer,integer,integer);
 CREATE OR REPLACE FUNCTION public.udf_spots_profile_get(
-  param_user_id integer,
-  param_rows_maximum_request integer,  
-  param_gimme_more_rows integer)
+  param_user_id integer,  -- This is the user that is visiting the profile
+  param_user_id_to_view integer, -- This is the profile owner
+  param_rows_maximum_request integer,
+  param_gimme_more_rows integer
+  )
   RETURNS json AS
 $BODY$
 
@@ -18,7 +20,7 @@ DECLARE
 
   /*
   -- To Test:
-    SELECT public.udf_spots_profile_get(1,10,0);
+    SELECT public.udf_spots_profile_get(1,2,10,0);
   */
 
   -- Prevention SQL injection
@@ -31,6 +33,23 @@ DECLARE
       id = param_user_id
     ) THEN
 
+    RAISE NOTICE '%',param_json_returning;
+    RETURN param_json_returning;
+
+  END IF;
+
+  -- Prevention SQL injection
+  IF NOT EXISTS(
+    SELECT
+      id
+    FROM
+      temporal_schema.users
+    WHERE
+      id = param_user_id_to_view
+    ) THEN
+
+    data_value = '{ "User_id": "' || param_user_id_to_view || ' not found" }';
+    param_json_returning = json_build_object('status',status_value,'data',data_value);
     RAISE NOTICE '%',param_json_returning;
     RETURN param_json_returning;
 
@@ -82,7 +101,7 @@ DECLARE
     --INNER JOIN temporal_schema.entity_statuses es
     --  ON es.id = ss.entity_status_id
   WHERE
-    s.user_id = param_user_id
+    s.user_id = param_user_id_to_view
     --AND
     --ss.id = 5 -- Activo
     --AND
@@ -235,26 +254,7 @@ DECLARE
 
     data_value = '[{
     "totalSpots": 0,
-    "spotsData":
-      [{
-          "spotId": null,
-          "ownerDetails": [],
-          "is_mine": null,
-          "spotName": null,
-          "lat": null,
-          "lng": null,
-          "country": null,
-          "city": null,
-          "is_active": null,
-          "categoriesList": [],
-          "tagsList": [],
-          "totallikes": null,
-          "likesList": [],
-          "imageList": [],
-          "usersTaggedList": [],
-          "commentsList": []
-        }]
-      }]';
+    "spotsData": []}]';
 
     RAISE NOTICE 'Were not found places';
 
@@ -272,5 +272,5 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100;
-ALTER FUNCTION public.udf_spots_profile_get(integer,integer,integer)
+ALTER FUNCTION public.udf_spots_profile_get(integer,integer,integer,integer)
   OWNER TO postgres;

@@ -77,6 +77,10 @@ a) schema -> functions: generating queries with tree json format:
 
 - udf_like_actions_get.sql: get the likes list related with a spot.
 
+- udf_comments_get.sql: get the comments related with a spot.
+
+- udf_commented_liked_get.sql: get the likes related with a comment of a spot.
+
 - udf_users_tagged_get.sql: get the users tagged related with a spot.
 
 - udf_tags_get.sql: get the tags related with a spot.
@@ -84,6 +88,10 @@ a) schema -> functions: generating queries with tree json format:
 - udf_spots_nearby_within_X_kilometers_from_current_user_position: get the places within 2 km (or you can custom) from the current position where you are. This search also include places of your friends.
 
 - udf_spots_nearby_by_filter_place_name.sql: get the places within 2 km (or you can custom) from the current position where you are, filter by a place name. This search also include places of your friends.
+
+- udf_spot_timeline_get.sql: get the places that belongs to my friends or me.
+
+- udf_spot_profile_get.sql: get the user profile of an account.
 
 b) schema -> tables: examples tables. In "spots" table you can find PostGIS geometry columns (geom and position) used in the functions.
 
