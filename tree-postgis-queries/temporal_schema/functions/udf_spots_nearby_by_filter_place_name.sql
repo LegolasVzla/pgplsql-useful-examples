@@ -115,7 +115,10 @@ DECLARE
     s.long != -66.5489833
   */
     AND
-    s.name ILIKE concat(param_place_name, '%')
+    --s.name ILIKE concat(param_place_name, '%')
+    -- Removing Stop words of the name column with to_tsvector() and removing stop words of the Search String with to_tsquery()
+    --(to_tsvector('english',name) @@ to_tsquery('english','''MySearchString''') or name ILIKE concat('MySearchString', '%'))
+    ((to_tsvector('english',name) @@ to_tsquery('english',''''||param_place_name||'''')) or name ILIKE concat(param_place_name, '%'))                         
     --AND
     --ss.id = 5 -- Activo
     --AND
