@@ -115,7 +115,18 @@ DECLARE
     s.long != -66.5489833
   */
     AND
-    s.name ILIKE concat(param_place_name, '%')
+    -- Removing Stop words of the place_name column with to_tsvector() and removing stop words of the Search String with to_tsquery()
+    --(to_tsvector('english',name) @@ to_tsquery('english','''MySearchString''') or name ILIKE concat('MySearchString', '%'))
+    /*
+    Examples: Place Name: "La Fonda de las Mercedes"
+    - Case 1: La Fonda
+    - Case 2: Fonda Mercedes
+    - Case 3: Fonda de las Mercedes
+    - Case 4: La F
+    - Case 4: f
+    - Caso 5: El Fonda tu la Mercedes
+    */
+    ((to_tsvector('english',name) @@ to_tsquery('english',''''||param_place_name||'''')) or (to_tsvector('spanish',name) @@ to_tsquery('spanish',''''||param_place_name||'''')) or name ILIKE concat(param_place_name, '%'))
     --AND
     --ss.id = 5 -- Activo
     --AND
