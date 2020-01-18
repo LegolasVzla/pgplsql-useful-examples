@@ -43,6 +43,46 @@ DECLARE
   status_value = 'success';
 
   DROP TABLE IF EXISTS temporal_spots_table;
+  DROP TABLE IF EXISTS user_list_temporal_table;
+
+  CREATE TEMPORARY TABLE IF NOT EXISTS user_list_temporal_table (
+    user_id integer
+  );
+  INSERT INTO user_list_temporal_table (
+    user_id
+  )
+  -- Get spots that belongs to the current user or their friends
+  SELECT DISTINCT
+      f.sender_user_id
+    FROM
+      temporal_schema.friendships f
+      INNER JOIN temporal_schema.users u
+      ON (f.sender_user_id = u.id OR f.receiver_user_id = u.id) 
+      INNER JOIN temporal_schema.spots s
+      ON u.id = s.user_id
+    WHERE 
+      (f.sender_user_id = param_user_id OR f.receiver_user_id = param_user_id)
+       AND f.status = 2 -- Are friends
+       AND u.id = param_user_id 
+       AND u.is_active
+       AND NOT u.is_deleted
+       AND s.is_active
+       AND NOT s.is_deleted
+    ;
+       
+  IF NOT EXISTS(
+        SELECT 
+            user_id 
+        FROM 
+            user_list_temporal_table 
+        WHERE 
+            user_id = param_user_id
+    ) THEN
+    INSERT INTO user_list_temporal_table (
+      user_id) VALUES
+    (param_user_id);
+  END IF;
+
   -- Create a temporary table to store nearby places
   CREATE TEMPORARY TABLE IF NOT EXISTS temporal_spots_table (
     id integer,
@@ -87,27 +127,7 @@ DECLARE
     --INNER JOIN temporal_schema.users u
     --  ON s.user_id = u.id
   WHERE
-    s.user_id IN (
-      -- Get spots that belongs to the current user or their friends
-    SELECT DISTINCT
-      f.sender_user_id
-    FROM
-      temporal_schema.friendships f
-      INNER JOIN temporal_schema.users u
-      ON (f.sender_user_id = u.id OR f.receiver_user_id = u.id) 
-      INNER JOIN temporal_schema.spots s
-      ON u.id = s.user_id
-    WHERE 
-      (f.sender_user_id = param_user_id OR f.receiver_user_id  = param_user_id)
-       AND f.status = 2 -- Are friends
-       AND u.id = param_user_id 
-       AND u.is_active
-       AND NOT u.is_deleted
-       AND s.is_active
-       AND NOT s.is_deleted
-       AND
-       ST_DistanceSphere("s"."position", ST_GeomFromEWKB(ST_MakePoint(param_long,param_lat)::bytea)) <= (local_max_distance::float)
-  ) OR s.user_id = param_user_id
+    s.user_id IN (SELECT user_id FROM user_list_temporal_table)
     /* If you want to exclude the current place where you are
   AND 
     s.lat != 10.469245
