@@ -164,9 +164,7 @@ DECLARE
       FROM
         temporal_spots_table
       ) LOOP
-
       RAISE NOTICE 'spot_id: %',i.id;
-
     END LOOP;
     */
 
@@ -191,55 +189,59 @@ DECLARE
             SELECT ARRAY_AGG(b.*) as "spotsData"
             FROM (
               SELECT
-                  tst.id "spotId",
-                  (SELECT ARRAY_AGG(c.*) 
-                    FROM (
-                      SELECT DISTINCT
-                        id,
-                        CONCAT(first_name,' ' || last_name) as owner--,
-                        --avatar as "avatar_url"
-                      FROM
-                        temporal_schema.users
-                      WHERE
-                        id = tst.user_id
-                    )c
-                  ) "ownerDetails",
-                  tst.name "spotName",
-                  tst.lat,
-                  tst.lng,
-                  tst.country,
-                  tst.city,
-                  tst.is_active,
-                  concat((now()-created_date),' Ago') AS "created_date",
-                  --concat((current_date-cast(created_date as date)),' ago') as "created_date",
-                  (SELECT temporal_schema.udf_categories_get(tst.id) AS "categoriesList"),
-                  (SELECT temporal_schema.udf_tags_get(tst.id) AS "tagsList"),
-                  (SELECT
-                      CASE
-                      WHEN (
-                        count(la.id) > 0 
-                      ) THEN count(la.id)
-                      ELSE 0
-                      END
+                tst.id "spotId",
+                CONCAT(trunc((SELECT ST_DistanceSphere(
+                    (SELECT geometry(ST_GeogFromText('SRID=4326;POINT('||tst.lng||' ' || tst.lat||')'))),
+                    (SELECT geometry(ST_GeogFromText('SRID=4326;POINT('||param_long||' ' || param_lat||')')))
+                ))),' meters') "distance",
+                (SELECT ARRAY_AGG(c.*) 
+                FROM (
+                    SELECT DISTINCT
+                    id,
+                    CONCAT(first_name,' ' || last_name) as owner--,
+                    --avatar as "avatar_url"
                     FROM
-                      temporal_schema.user_actions ua
-                      INNER JOIN temporal_schema.like_actions la
-                        ON ua.id = la.user_actions_id
+                    temporal_schema.users
                     WHERE
-                      ua.spot_id = tst.id
-                      AND
-                      ua.is_active
-                      AND NOT
-                      ua.is_deleted
-                      AND
-                      la.is_active
-                      AND NOT
-                      la.is_deleted
-                  ) "totallikes",
-                  (SELECT temporal_schema.udf_like_actions_get(param_user_id,tst.id) AS "likesList"),
-                  (SELECT temporal_schema.udf_images_get(tst.id) AS "imageList"),
-                  (SELECT temporal_schema.udf_users_tagged_get(param_user_id,tst.id) AS "usersTaggedList"),
-                  (SELECT temporal_schema.udf_comments_get(tst.id) AS "commentsList")
+                    id = tst.user_id
+                )c
+                ) "ownerDetails",
+                tst.name "spotName",
+                tst.lat,
+                tst.lng,
+                tst.country,
+                tst.city,
+                tst.is_active,
+                concat((now()-created_date),' Ago') AS "created_date",
+                --concat((current_date-cast(created_date as date)),' ago') as "created_date",
+                (SELECT temporal_schema.udf_categories_get(tst.id) AS "categoriesList"),
+                (SELECT temporal_schema.udf_tags_get(tst.id) AS "tagsList"),
+                (SELECT
+                    CASE
+                    WHEN (
+                    count(la.id) > 0 
+                    ) THEN count(la.id)
+                    ELSE 0
+                    END
+                FROM
+                    temporal_schema.user_actions ua
+                    INNER JOIN temporal_schema.like_actions la
+                    ON ua.id = la.user_actions_id
+                WHERE
+                    ua.spot_id = tst.id
+                    AND
+                    ua.is_active
+                    AND NOT
+                    ua.is_deleted
+                    AND
+                    la.is_active
+                    AND NOT
+                    la.is_deleted
+                ) "totallikes",
+                (SELECT temporal_schema.udf_like_actions_get(param_user_id,tst.id) AS "likesList"),
+                (SELECT temporal_schema.udf_images_get(tst.id) AS "imageList"),
+                (SELECT temporal_schema.udf_users_tagged_get(param_user_id,tst.id) AS "usersTaggedList"),
+                (SELECT temporal_schema.udf_comments_get(tst.id) AS "commentsList")
               FROM 
                   temporal_spots_table tst
               LIMIT param_rows_maximum_request OFFSET param_gimme_more_rows -- Getting rows by range
